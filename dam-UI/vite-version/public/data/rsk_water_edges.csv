@@ -1,0 +1,14 @@
+﻿source_id,target_id,relation_type,status,distance_km,note
+basin_bouregreg_chaouia,dam_smba,contains_major_dam,verified,,SMBA belongs to Bouregreg-Chaouia system
+basin_sebou,dam_garde_sebou,contains_major_dam,verified,,Garde de Sebou belongs to Sebou system
+dam_smba,complex_bouregreg,feeds,verified,,SMBA feeds Bouregreg production system
+complex_bouregreg,station_bouregreg,includes,verified,,Complex includes treatment station
+dam_garde_sebou,dam_smba,interconnection_transfer,verified_project,67.0,Official Sebou-Bouregreg interconnection project length ~67 km
+station_bouregreg,city_rabat,supplies_modeled,verified_service_area + modeled_link,4.5,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_sale,supplies_modeled,verified_service_area + modeled_link,6.4,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_temara,supplies_modeled,verified_service_area + modeled_link,9.8,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_skhirat,supplies_modeled,verified_service_area + modeled_link,23.8,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_bouznika,supplies_modeled,verified_service_area + modeled_link,37.3,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_ain_aouda,supplies_modeled,verified_service_area + modeled_link,20.3,Service area is verified; exact pipe path is not yet verified
+station_bouregreg,city_rommani,supplies_modeled,verified_service_area + modeled_link,54.1,Service area is verified; exact pipe path is not yet verified
+dam_garde_sebou,city_kenitra,strategic_supply_zone,strategic_modeled,29.6,Strategic coastal zone around Kénitra; direct potable path not asserted here

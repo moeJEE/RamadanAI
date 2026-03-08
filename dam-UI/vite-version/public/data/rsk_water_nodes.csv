@@ -1,0 +1,15 @@
+﻿id,name,type,lat,lon,province_region,basin,status,source_note
+basin_bouregreg_chaouia,Bassin Bouregreg-Chaouia,basin,,,Rabat-Salé-Kénitra,Bouregreg-Chaouia,verified,ABHBC official basin entity
+basin_sebou,Bassin du Sebou,basin,,,Rabat-Salé-Kénitra / Fès-Meknès,Sebou,verified,ABHS official basin entity
+dam_smba,Barrage Sidi Mohammed Ben Abdellah,dam,33.937811,-6.750905,Skhirate-Témara,Bouregreg-Chaouia,verified_name_location / OSM-geocoded,Officially on Oued Bouregreg near Rabat; coordinate from Wikidata/OpenStreetMap
+dam_garde_sebou,Barrage Garde de Sebou,dam,34.48816,-6.412807,Kénitra,Sebou,verified_name / estimated_coords,Official barrage fiche; coordinates estimated from projected 'Maroc Nord' values reported in a GIS academic document
+complex_bouregreg,Complexe Bouregreg,water_complex,33.98,-6.83,Rabat,Bouregreg-Chaouia,verified_entity / approx_coords,Official complex exists; coordinate approximated around official station area in Rabat
+station_bouregreg,Station de traitement Bouregreg,treatment_plant,33.9815,-6.8285,Rabat,Bouregreg-Chaouia,verified_address / approx_coords,Official address in Rabat; coordinate approximated from address area
+city_rabat,Rabat,city,34.020882,-6.84165,Rabat,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_sale,Salé,city,34.03313,-6.79846,Salé,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_temara,Témara,city,33.9267,-6.9111,Skhirate-Témara,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_skhirat,Skhirat,city,33.8496,-7.0317,Skhirate-Témara,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_bouznika,Bouznika,city,33.7892,-7.1597,Benslimane,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_kenitra,Kénitra,city,34.261,-6.5802,Kénitra,Sebou,city_centroid,Modeling centroid
+city_ain_aouda,Aïn Aouda,city,33.8009,-6.7998,Skhirate-Témara,Bouregreg-Chaouia,city_centroid,Modeling centroid
+city_rommani,Rommani,city,33.5333,-6.6,Khémisset,Bouregreg-Chaouia,city_centroid,Modeling centroid
