@@ -18,7 +18,13 @@ import joblib
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
-from typing import Dict, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
+
+try:
+    import shap
+    _HAS_SHAP = True
+except ImportError:
+    _HAS_SHAP = False
 
 from app.config import MODELS_DIR
 
@@ -28,7 +34,7 @@ FEATURE_COLS = [
     "temp_mean", "temp_max", "temp_min",
     "precip_mm", "et0_mm", "wind_kmh",
     "population", "irrigation_area_ha", "catchment_area_km2",
-    "irrigation_season_flag",
+    "irrigation_season_flag", "is_ramadan",
     "fill_ratio", "inflow_m3", "evap_m3",
     "demand_lag_1d", "demand_lag_7d", "demand_lag_14d", "demand_lag_30d",
     "fill_lag_1d", "fill_lag_7d", "fill_lag_14d", "fill_lag_30d",
@@ -107,6 +113,80 @@ class DemandPredictor:
         result_df = pd.DataFrame(results, index=features.index)
         result_df["total_demand_m3"] = result_df.sum(axis=1)
         return result_df
+
+    def explain(self, features: pd.DataFrame, target: str = "pop_m3", top_n: int = 7) -> Dict:
+        """Explain a prediction using SHAP feature importance.
+
+        Returns the top N features driving the prediction with their SHAP values.
+        Great for answering judges' questions about model interpretability.
+        """
+        if not self.is_trained:
+            return {"error": "Model not trained"}
+
+        if not _HAS_SHAP:
+            # Fallback: use LightGBM built-in feature importance
+            model = self.models.get(target)
+            if not model:
+                return {"error": f"No model for target '{target}'"}
+            importance = model.feature_importance(importance_type="gain")
+            feature_imp = sorted(
+                zip(FEATURE_COLS, importance),
+                key=lambda x: -x[1]
+            )[:top_n]
+            return {
+                "target": target,
+                "method": "lightgbm_gain",
+                "top_features": [
+                    {"feature": f, "importance": round(float(v), 2)}
+                    for f, v in feature_imp
+                ],
+            }
+
+        model = self.models.get(target)
+        if not model:
+            return {"error": f"No model for target '{target}'"}
+
+        X = features[FEATURE_COLS]
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X)
+
+        # For single prediction
+        if len(X) == 1:
+            sv = shap_values[0]
+            feature_shap = sorted(
+                zip(FEATURE_COLS, sv, X.iloc[0].values),
+                key=lambda x: -abs(x[1])
+            )[:top_n]
+            return {
+                "target": target,
+                "method": "shap_tree",
+                "base_value": round(float(explainer.expected_value), 1),
+                "predicted_value": round(float(explainer.expected_value + sum(sv)), 1),
+                "top_features": [
+                    {
+                        "feature": f,
+                        "shap_value": round(float(s), 1),
+                        "feature_value": round(float(v), 4),
+                        "direction": "↑ augmente" if s > 0 else "↓ diminue",
+                    }
+                    for f, s, v in feature_shap
+                ],
+            }
+
+        # For batch: return mean absolute SHAP
+        mean_abs = np.abs(shap_values).mean(axis=0)
+        feature_imp = sorted(
+            zip(FEATURE_COLS, mean_abs),
+            key=lambda x: -x[1]
+        )[:top_n]
+        return {
+            "target": target,
+            "method": "shap_tree_mean",
+            "top_features": [
+                {"feature": f, "mean_abs_shap": round(float(v), 1)}
+                for f, v in feature_imp
+            ],
+        }
 
     def save(self, path: Optional[Path] = None):
         """Save trained models to disk."""

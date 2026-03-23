@@ -46,6 +46,9 @@ class Settings(BaseSettings):
         {"name": "Témara",  "lat": 33.9267, "lon": -6.9111},
     ]
 
+    # Gemini LLM (for AI agent)
+    GEMINI_API_KEY: str = ""
+
     # Runoff coefficients by basin (README §16.2)
     RUNOFF_COEFFICIENTS: dict[str, float] = {
         "Bouregreg-Chaouia": 0.25,

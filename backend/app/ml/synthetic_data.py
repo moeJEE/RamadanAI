@@ -2,12 +2,32 @@
 
 Generates realistic demand and weather feature time-series
 based on heuristics from the README §16.3.
+
+Includes Ramadan-specific demand patterns:
+- Population demand spikes +15% (iftar cooking, post-iftar cleaning)
+- Industrial demand drops -15% (reduced working hours)
 """
 
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Dict, List, Tuple
+
+
+# ── Ramadan approximate date ranges (Hijri calendar shifts ~11 days/year) ──
+RAMADAN_PERIODS = [
+    (date(2024, 3, 11), date(2024, 4, 9)),    # Ramadan 2024
+    (date(2025, 2, 28), date(2025, 3, 30)),    # Ramadan 2025
+    (date(2026, 2, 17), date(2026, 3, 19)),    # Ramadan 2026
+]
+
+
+def is_ramadan_date(d: date) -> bool:
+    """Check if a given date falls within a Ramadan period."""
+    for start, end in RAMADAN_PERIODS:
+        if start <= d <= end:
+            return True
+    return False
 
 
 # ── Regional parameters (Rabat-Salé-Kénitra) ──
@@ -151,17 +171,27 @@ def generate_dam_dataset(
         doy = w["day_of_year"]
         sf = _seasonal_factor(doy)
 
+        # ── Ramadan detection ──
+        current_date = w["date"].date() if hasattr(w["date"], 'date') else w["date"]
+        ramadan_flag = 1 if is_ramadan_date(current_date) else 0
+
         # ── Demand (README §7.2 heuristics) ──
         # Population: ~150 L/person/day × seasonal factor
         pop_m3 = pop * 0.150 * sf["pop_factor"] * (1 + rng.normal(0, 0.05))
+
+        # Ramadan: population demand spikes +15% (iftar cooking & cleaning)
+        if ramadan_flag:
+            pop_m3 *= 1.15
 
         # Agriculture: irrigation_area_ha × crop_coef × irrigation_fraction
         crop_coef = 0.8 + 0.4 * np.sin(2 * np.pi * doy / 365 - np.pi / 4)
         agri_m3 = irr_ha * 10 * crop_coef * sf["agri_factor"] * (1 + rng.normal(0, 0.1))
         agri_m3 = max(0, agri_m3)
 
-        # Industry: ~20% of domestic
+        # Industry: ~20% of domestic (Ramadan: -15% reduced hours)
         industry_m3 = pop_m3 * 0.20 * sf["industry_factor"] * (1 + rng.normal(0, 0.08))
+        if ramadan_flag:
+            industry_m3 *= 0.85
 
         total_demand_m3 = pop_m3 + agri_m3 + industry_m3
 
@@ -196,6 +226,7 @@ def generate_dam_dataset(
             "irrigation_area_ha": irr_ha,
             "catchment_area_km2": catchment,
             "irrigation_season_flag": sf["irrigation_season_flag"],
+            "is_ramadan": ramadan_flag,
             "fill_ratio": round(fill_ratio, 4),
             "inflow_m3": round(inflow_m3, 0),
             "evap_m3": round(evap_m3, 0),

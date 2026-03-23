@@ -21,6 +21,7 @@ class DemandRequest(BaseModel):
     precip_mm: float = 0.0
     et0_mm: float = 4.0
     fill_ratio: float = 0.5
+    is_ramadan: bool = False
 
 
 class GNNRequest(BaseModel):
@@ -53,6 +54,7 @@ async def run_demand_model(req: DemandRequest):
         "irrigation_area_ha": 1000,
         "catchment_area_km2": 500,
         "irrigation_season_flag": 1 if 4 <= req.month <= 9 else 0,
+        "is_ramadan": 1 if req.is_ramadan else 0,
         "fill_ratio": req.fill_ratio,
         "inflow_m3": req.precip_mm * 500_000,
         "evap_m3": req.et0_mm * 1000,
@@ -72,6 +74,61 @@ async def run_demand_model(req: DemandRequest):
         "status": "ok",
         "dam_id": req.dam_id,
         "predictions": result,
+    }
+
+
+@router.post("/demand/explain")
+async def explain_demand_model(req: DemandRequest):
+    """Explain a demand prediction — which features matter most (SHAP)."""
+    predictor = get_demand_predictor()
+
+    if not predictor.is_trained:
+        return {
+            "status": "not_trained",
+            "message": "Demand predictor not yet trained.",
+        }
+
+    import pandas as pd
+    import math
+
+    features_dict = {
+        "day_of_year": req.day_of_year,
+        "month_sin": math.sin(2 * math.pi * req.month / 12),
+        "month_cos": math.cos(2 * math.pi * req.month / 12),
+        "temp_mean": req.temp_mean,
+        "temp_max": req.temp_mean + 5,
+        "temp_min": req.temp_mean - 5,
+        "precip_mm": req.precip_mm,
+        "et0_mm": req.et0_mm,
+        "wind_kmh": 12.0,
+        "population": 500_000,
+        "irrigation_area_ha": 1000,
+        "catchment_area_km2": 500,
+        "irrigation_season_flag": 1 if 4 <= req.month <= 9 else 0,
+        "is_ramadan": 1 if req.is_ramadan else 0,
+        "fill_ratio": req.fill_ratio,
+        "inflow_m3": req.precip_mm * 500_000,
+        "evap_m3": req.et0_mm * 1000,
+        "demand_lag_1d": 0,
+        "demand_lag_7d": 0,
+        "demand_lag_14d": 0,
+        "demand_lag_30d": 0,
+        "fill_lag_1d": req.fill_ratio,
+        "fill_lag_7d": req.fill_ratio,
+        "fill_lag_14d": req.fill_ratio,
+        "fill_lag_30d": req.fill_ratio,
+    }
+
+    df = pd.DataFrame([features_dict])
+    explanations = {}
+    for target in ["pop_m3", "industry_m3", "agri_m3"]:
+        explanations[target] = predictor.explain(df, target=target)
+
+    return {
+        "status": "ok",
+        "dam_id": req.dam_id,
+        "is_ramadan": req.is_ramadan,
+        "explanations": explanations,
     }
 
 
