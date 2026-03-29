@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 const navigationItems = [
   { name: 'Accueil', href: '#hero' },
   { name: 'Fonctionnalités', href: '#features' },
+  { name: 'Architecture', href: '#architecture' },
   { name: 'Contact', href: '#contact' },
 ]
 

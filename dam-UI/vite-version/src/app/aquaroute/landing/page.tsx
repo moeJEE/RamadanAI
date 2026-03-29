@@ -3,6 +3,7 @@
 import { LandingNavbar } from './components/navbar'
 import { HeroSection } from './components/hero-section'
 import { FeaturesSection } from './components/features-section'
+import { ArchitectureSection } from './components/architecture-section'
 import { CTASection } from './components/cta-section'
 import { ContactSection } from './components/contact-section'
 import { LandingFooter } from './components/footer'
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <ArchitectureSection />
         <CTASection />
         <ContactSection />
       </main>
