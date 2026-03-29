@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { type Message, type User } from "../use-chat"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface MessageListProps {
   messages: Message[]
@@ -142,8 +144,8 @@ export function MessageList({ messages, users, currentUserId = "current-user" }:
   const messageGroups = groupMessagesByDay(messages)
 
   return (
-    <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-      <div className="space-y-4 py-4">
+    <ScrollArea className="flex-1 min-h-0 px-4 h-full" ref={scrollAreaRef}>
+      <div className="space-y-4 py-4 pb-6">
         {messageGroups.map((group) => (
           <div key={group.date}>
             {/* Date separator */}
@@ -198,14 +200,14 @@ export function MessageList({ messages, users, currentUserId = "current-user" }:
                       <div className="relative group/message">
                         <div
                           className={cn(
-                            "rounded-lg px-3 py-2 text-sm break-words",
+                            "rounded-lg px-3 py-2 text-sm break-words prose prose-sm max-w-none dark:prose-invert",
                             isOwnMessage
-                              ? "bg-primary text-primary-foreground"
+                              ? "bg-primary text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-headings:text-primary-foreground"
                               : "bg-muted",
                             isConsecutive && "mt-1"
                           )}
                         >
-                          <p>{message.content}</p>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
 
                           {/* Message reactions */}
                           {message.reactions.length > 0 && (
@@ -288,7 +290,7 @@ export function MessageList({ messages, users, currentUserId = "current-user" }:
         ))}
 
         {/* Scroll anchor */}
-        <div ref={bottomRef} />
+        <div ref={bottomRef} className="h-4" />
       </div>
     </ScrollArea>
   )

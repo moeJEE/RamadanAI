@@ -85,8 +85,9 @@ export default function TransfertsPage() {
         
         const mappedTransfers: Transfer[] = (data.transfers || []).map((t: any, idx: number) => {
            // On recroise les infos avec la liste de barrages existante du store
-           const fromDam = summaries.find(s => s.name === t.source_dam) || summaries[0]
-           const toDam = summaries.find(s => s.name === t.target_dam) || summaries[0]
+           // L'API peut retourner "Barrage de X" ou "Barrage X", donc on fait un `.includes()`
+           const fromDam = summaries.find(s => t.source_dam.includes(s.name) || s.name.includes(t.source_dam)) || summaries[0]
+           const toDam = summaries.find(s => t.target_dam.includes(s.name) || s.name.includes(t.target_dam)) || summaries[0]
            const volMm3 = t.volume_m3 / 1000000
            const urgency = (toDam.fillPercent ?? 0) < 15 ? 'critical' : (toDam.fillPercent ?? 0) < 25 ? 'recommended' : 'preventive'
            

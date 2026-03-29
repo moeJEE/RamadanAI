@@ -68,9 +68,13 @@ function createDamIcon(color: string, hasAlert: boolean): L.DivIcon {
 interface WaterMapProps {
   dams: DamSummary[]
   alerts: WaterAlert[]
+  showHeader?: boolean
+  showLegend?: boolean
+  showDetailButton?: boolean
+  showAttribution?: boolean
 }
 
-export function WaterMap({ dams, alerts }: WaterMapProps) {
+export function WaterMap({ dams, alerts, showHeader = true, showLegend = true, showDetailButton = true, showAttribution = true }: WaterMapProps) {
   const navigate = useNavigate()
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
@@ -85,6 +89,7 @@ export function WaterMap({ dams, alerts }: WaterMapProps) {
       zoom: 9,
       zoomControl: true,
       scrollWheelZoom: true,
+      attributionControl: showAttribution,
     })
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -165,6 +170,18 @@ export function WaterMap({ dams, alerts }: WaterMapProps) {
             border-radius:4px;padding:1px 6px;font-size:11px;">⚠ Alerte</span>`
       }
 
+      const buttonHtml = showDetailButton
+        ? `<button
+            onclick="window.__navigateToDam && window.__navigateToDam('${dam.id}')"
+            style="
+              margin-top:10px; width:100%; padding:5px 0;
+              background:#0ea5e9; color:white; border:none;
+              border-radius:5px; cursor:pointer; font-size:12px; font-weight:600;
+            ">
+            Voir le détail →
+          </button>`
+        : ''
+
       marker.bindPopup(`
         <div style="min-width:180px; font-family:system-ui,sans-serif;">
           <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${dam.name}</div>
@@ -179,15 +196,7 @@ export function WaterMap({ dams, alerts }: WaterMapProps) {
             <tr><td style="color:#888;padding:2px 0;">Capacité</td>
                 <td style="font-weight:600;text-align:right;">${capText}</td></tr>
           </table>
-          <button
-            onclick="window.__navigateToDam && window.__navigateToDam('${dam.id}')"
-            style="
-              margin-top:10px; width:100%; padding:5px 0;
-              background:#0ea5e9; color:white; border:none;
-              border-radius:5px; cursor:pointer; font-size:12px; font-weight:600;
-            ">
-            Voir le détail →
-          </button>
+          ${buttonHtml}
         </div>
       `, { maxWidth: 240 })
 
@@ -212,29 +221,33 @@ export function WaterMap({ dams, alerts }: WaterMapProps) {
 
   return (
     <Card className="shadow-sm border overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <span>🗺️</span>
-          Carte — Région Rabat-Salé-Kénitra
-        </CardTitle>
-      </CardHeader>
+      {showHeader && (
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <span>🗺️</span>
+            Carte — Région Rabat-Salé-Kénitra
+          </CardTitle>
+        </CardHeader>
+      )}
       <CardContent className="p-0">
         {/* Legend */}
-        <div className="flex flex-wrap gap-3 px-4 pb-2 text-xs text-muted-foreground">
-          {[
-            { label: 'Critique (<15%)', color: '#ef4444' },
-            { label: 'Bas (<40%)',      color: '#f97316' },
-            { label: 'Moyen (<65%)',    color: '#eab308' },
-            { label: 'Bon (<85%)',      color: '#22c55e' },
-            { label: 'Élevé (<95%)',    color: '#0ea5e9' },
-            { label: 'Très élevé',      color: '#8b5cf6' },
-          ].map(({ label, color }) => (
-            <span key={label} className="flex items-center gap-1">
-              <span style={{ background: color }} className="w-2.5 h-2.5 rounded-full inline-block" />
-              {label}
-            </span>
-          ))}
-        </div>
+        {showLegend && (
+          <div className="flex flex-wrap gap-3 px-4 pb-2 text-xs text-muted-foreground">
+            {[
+              { label: 'Critique (<15%)', color: '#ef4444' },
+              { label: 'Bas (<40%)',      color: '#f97316' },
+              { label: 'Moyen (<65%)',    color: '#eab308' },
+              { label: 'Bon (<85%)',      color: '#22c55e' },
+              { label: 'Élevé (<95%)',    color: '#0ea5e9' },
+              { label: 'Très élevé',      color: '#8b5cf6' },
+            ].map(({ label, color }) => (
+              <span key={label} className="flex items-center gap-1">
+                <span style={{ background: color }} className="w-2.5 h-2.5 rounded-full inline-block" />
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Map container */}
         <div

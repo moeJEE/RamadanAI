@@ -1,6 +1,6 @@
 import { lazy } from 'react'
-import { Navigate } from 'react-router-dom'
 
+const Landing     = lazy(() => import('@/app/aquaroute/landing/page'))
 const Dashboard   = lazy(() => import('@/app/aquaroute/dashboard/page'))
 const DamDetail   = lazy(() => import('@/app/aquaroute/dam/page'))
 const Alerts      = lazy(() => import('@/app/aquaroute/alerts/page'))
@@ -24,7 +24,7 @@ export interface RouteConfig {
 }
 
 export const routes: RouteConfig[] = [
-  { path: '/',              element: <Navigate to="dashboard" replace /> },
+  { path: '/',              element: <Landing /> },
   { path: '/dashboard',     element: <Dashboard /> },
   { path: '/dam/:damId',    element: <DamDetail /> },
   { path: '/alerts',        element: <Alerts /> },

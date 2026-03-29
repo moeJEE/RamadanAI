@@ -86,8 +86,12 @@ export default function AgentPage() {
 
   useEffect(() => {
     const len = currentMessages.length
+    console.log(`[Agent] Messages length changed. Prev: ${prevMessagesLength.current}, Current: ${len}`)
+
     if (len > prevMessagesLength.current) {
       const lastMsg = currentMessages[len - 1]
+      console.log(`[Agent] New message detected from: ${lastMsg.senderId} | text: ${lastMsg.content}`)
+
       // If user sent a message, schedule AI reply
       if (lastMsg.senderId === "current-user") {
         setTyping("agent-conv", true)

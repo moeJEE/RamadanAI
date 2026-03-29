@@ -91,6 +91,10 @@ def run_simulation(db: Session, params: SimulationParams) -> SimulationResult:
         for surplus in sorted(surplus_dams, key=lambda x: -x["fill"]):
             if surplus["excess_m3"] <= 0:
                 continue
+                
+            # Prévention des auto-transferts ou transferts entre doublons de même nom
+            if surplus["dam"].id == deficit["dam"].id or surplus["dam"].name == deficit["dam"].name:
+                continue
 
             volume = min(deficit["deficit_m3"], surplus["excess_m3"])
             if volume < 100_000:  # Minimum 0.1 Mm³

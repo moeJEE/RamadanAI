@@ -18,9 +18,9 @@ interface ChatProps {
 }
 
 export function Chat({
-  conversations,
-  messages,
-  users,
+  conversations: initialConversations,
+  messages: initialMessages,
+  users: initialUsers,
 }: ChatProps) {
   const {
     selectedConversation,
@@ -30,6 +30,9 @@ export function Chat({
     setUsers,
     addMessage,
     toggleMute,
+    messages, // From store (dynamic)
+    conversations, // From store (dynamic)
+    users, // From store (dynamic)
   } = useChat()
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -46,21 +49,25 @@ export function Chat({
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Initialize data
+  // Initialize data ONLY ONCE on mount
   useEffect(() => {
-    setConversations(conversations)
-    setUsers(users)
-    
-    // Set messages for all conversations
-    Object.entries(messages).forEach(([conversationId, conversationMessages]) => {
-      setMessages(conversationId, conversationMessages)
-    })
+    // We only set if the store is empty to avoid overwriting on hot reloads or remounts
+    if (conversations.length === 0) {
+      setConversations(initialConversations)
+      setUsers(initialUsers)
+      
+      // Set messages for all conversations
+      Object.entries(initialMessages).forEach(([conversationId, conversationMessages]) => {
+        setMessages(conversationId, conversationMessages)
+      })
 
-    // Auto-select first conversation if none selected
-    if (!selectedConversation && conversations.length > 0) {
-      setSelectedConversation(conversations[0].id)
+      // Auto-select first conversation if none selected
+      if (!selectedConversation && initialConversations.length > 0) {
+        setSelectedConversation(initialConversations[0].id)
+      }
     }
-  }, [conversations, messages, users, selectedConversation, setConversations, setMessages, setUsers, setSelectedConversation])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const currentConversation = conversations.find(conv => conv.id === selectedConversation)
   const currentMessages = selectedConversation ? messages[selectedConversation] || [] : []
@@ -153,20 +160,24 @@ export function Chat({
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 flex flex-col min-h-0">
+          {/* Messages and Input Container */}
+          <div className="flex-1 flex flex-col min-h-0 relative">
             {selectedConversation ? (
               <>
-                <MessageList
-                  messages={currentMessages}
-                  users={users}
-                />
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <MessageList
+                    messages={currentMessages}
+                    users={users}
+                  />
+                </div>
                 
-                {/* Message Input */}
-                <MessageInput
-                  onSendMessage={handleSendMessage}
-                  placeholder={`Message ${currentConversation?.name || ""}...`}
-                />
+                {/* Message Input - Pinned to bottom */}
+                <div className="shrink-0 z-10 bg-background border-t">
+                  <MessageInput
+                    onSendMessage={handleSendMessage}
+                    placeholder={`Message ${currentConversation?.name || ""}...`}
+                  />
+                </div>
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
